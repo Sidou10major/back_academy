@@ -11,6 +11,11 @@ import enrollmentRoutes from './routes/enrollmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import teacherAttendanceRoutes from './routes/teacherAttendanceRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import gradeRoutes from './routes/gradeRoutes.js';
+import skillAssessmentRoutes from './routes/skillAssessmentRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -32,6 +37,11 @@ app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/teacher-attendance', teacherAttendanceRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/grades', gradeRoutes);
+app.use('/api/skill-assessments', skillAssessmentRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
