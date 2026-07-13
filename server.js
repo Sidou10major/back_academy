@@ -10,6 +10,7 @@ import classSessionRoutes from './routes/classSessionRoutes.js';
 import enrollmentRoutes from './routes/enrollmentRoutes.js';
 import attendanceRoutes from './routes/attendanceRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import teacherAttendanceRoutes from './routes/teacherAttendanceRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/sessions', classSessionRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/teacher-attendance', teacherAttendanceRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
