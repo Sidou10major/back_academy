@@ -16,6 +16,8 @@ import announcementRoutes from './routes/announcementRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import gradeRoutes from './routes/gradeRoutes.js';
 import skillAssessmentRoutes from './routes/skillAssessmentRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import certificateRoutes from './routes/certificateRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -42,6 +44,8 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/skill-assessments', skillAssessmentRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/certificates', certificateRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
