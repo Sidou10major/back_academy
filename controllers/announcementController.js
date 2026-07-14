@@ -2,6 +2,7 @@ import Announcement from '../models/Announcement.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 import Enrollment from '../models/Enrollment.js';
+import { notifyUsersViaWhatsApp } from '../services/whatsappService.js';
 
 // ─── Helper: Fan-out notifications to target users ─────────
 
@@ -50,6 +51,15 @@ const fanOutNotifications = async (announcement) => {
             // the notification was already sent to that user
             if (err.code !== 11000 && !err.writeErrors) throw err;
         });
+
+        // Send WhatsApp notifications to users who have phone numbers (fire-and-forget)
+        const usersWithPhone = await User.find({ _id: { $in: userIds }, phone: { $ne: '' } }).lean();
+        if (usersWithPhone.length > 0) {
+            const msgText = `📢 New Announcement: "${announcement.title}"
+
+${announcement.content}`;
+            notifyUsersViaWhatsApp(usersWithPhone, msgText);
+        }
     }
 
     return userIds.length;

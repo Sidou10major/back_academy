@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: languageEnum
     }],
+    phone: { type: String, trim: true, default: '' }, // WhatsApp number with country code (e.g., +213xxxxxxxxx)
+    hourlyRate: { type: Number, default: 25 }, // Teacher hourly rate for payroll calculation
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 

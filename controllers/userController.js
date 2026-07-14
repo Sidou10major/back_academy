@@ -2,10 +2,19 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 
 // Helper function to generate JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d', // Token expires in 30 days
-    });
+const generateToken = (user) => {
+    return jwt.sign(
+        {
+            id: user._id,
+            role: user.role,
+            firstName: user.firstName,
+            lastName: user.lastName
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: '30d', // Token expires in 30 days
+        }
+    );
 };
 
 // @desc    Auth user & get token (Login)
@@ -29,7 +38,8 @@ export const loginUser = async (req, res) => {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                token: generateToken(user._id)
+                phone: user.phone,
+                token: generateToken(user)
             });
         } else {
             res.status(401).json({ error: 'Invalid email or password' });
@@ -85,6 +95,8 @@ export const updateUser = async (req, res) => {
         user.email = req.body.email !== undefined ? req.body.email : user.email;
         user.role = req.body.role !== undefined ? req.body.role : user.role;
         user.languages = req.body.languages !== undefined ? req.body.languages : user.languages;
+        user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
+        user.hourlyRate = req.body.hourlyRate !== undefined ? req.body.hourlyRate : user.hourlyRate;
         user.isActive = req.body.isActive !== undefined ? req.body.isActive : user.isActive;
 
         if (password) {

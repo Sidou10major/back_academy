@@ -1,5 +1,6 @@
 import Payment from '../models/Payment.js';
 import User from '../models/User.js';
+import { notifyUserViaWhatsApp, notifyUsersViaWhatsApp } from '../services/whatsappService.js';
 
 // @desc    Generate a new fee/payment request for a student
 // @route   POST /api/payments
@@ -36,6 +37,14 @@ export const confirmPayment = async (req, res) => {
         // Reactivate the student's account
         await User.findByIdAndUpdate(payment.student, { isActive: true });
 
+        // Send WhatsApp notification to the student (fire-and-forget)
+        const student = await User.findById(payment.student).lean();
+        if (student?.phone) {
+            notifyUserViaWhatsApp(student,
+                `✅ Hello ${student.firstName}! Your payment has been confirmed and your account is now active. Thank you!`
+            );
+        }
+
         res.status(200).json({ message: 'Payment confirmed and student account is active.', payment });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -71,6 +80,12 @@ export const enforceOverdueBlocks = async (req, res) => {
         await User.updateMany(
             { _id: { $in: studentIdsToBlock } },
             { $set: { isActive: false } }
+        );
+
+        // 5. Send WhatsApp notifications to blocked students (fire-and-forget)
+        const blockedStudents = await User.find({ _id: { $in: studentIdsToBlock } }).lean();
+        notifyUsersViaWhatsApp(blockedStudents,
+            `⚠️ Your account has been temporarily blocked due to an overdue payment. Please contact the administration to resolve this.`
         );
 
         res.status(200).json({

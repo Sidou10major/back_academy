@@ -1,6 +1,7 @@
 import Enrollment from '../models/Enrollment.js';
 import ClassSession from '../models/ClassSession.js';
 import User from '../models/User.js';
+import { notifyUserViaWhatsApp } from '../services/whatsappService.js';
 
 // @desc    Enroll a student in a class session
 // @route   POST /api/enrollments
@@ -30,6 +31,16 @@ export const createEnrollment = async (req, res) => {
         // 4. Increment the student count in the session
         session.currentStudents += 1;
         await session.save();
+
+        // 5. Send WhatsApp notification to the student (fire-and-forget)
+        const student = await User.findById(studentId).lean();
+        if (student?.phone) {
+            const sessionInfo = await ClassSession.findById(sessionId).populate('course', 'title language').lean();
+            const courseName = sessionInfo?.course?.title || 'a course';
+            notifyUserViaWhatsApp(student,
+                `🎓 Hello ${student.firstName}! You have been successfully enrolled in "${courseName}". Welcome aboard!`
+            );
+        }
 
         res.status(201).json(enrollment);
     } catch (error) {
