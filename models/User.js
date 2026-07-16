@@ -19,8 +19,18 @@ const userSchema = new mongoose.Schema({
     }],
     phone: { type: String, trim: true, default: '' }, // WhatsApp number with country code (e.g., +213xxxxxxxxx)
     hourlyRate: { type: Number, default: 25 }, // Teacher hourly rate for payroll calculation
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    residence: { type: String, default: 'Algeria', trim: true }
 }, { timestamps: true });
+
+userSchema.virtual('currency').get(function () {
+    if (!this.residence) return 'DZD';
+    return this.residence.trim().toLowerCase() === 'algeria' ? 'DZD' : 'USD';
+});
+
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
+
 
 // Pre-save hook to hash the password before saving to the database
 // Pre-save hook to hash the password before saving to the database

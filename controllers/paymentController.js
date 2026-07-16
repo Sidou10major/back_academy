@@ -6,7 +6,22 @@ import { notifyUserViaWhatsApp, notifyUsersViaWhatsApp } from '../services/whats
 // @route   POST /api/payments
 export const createPayment = async (req, res) => {
     try {
-        const payment = new Payment(req.body);
+        const { student: studentId, currency } = req.body;
+        let finalCurrency = currency;
+
+        if (!finalCurrency && studentId) {
+            const student = await User.findById(studentId);
+            if (student) {
+                const isAlgerian = student.residence && student.residence.trim().toLowerCase() === 'algeria';
+                finalCurrency = isAlgerian ? 'DZD' : 'USD';
+            }
+        }
+
+        if (!finalCurrency) {
+            finalCurrency = 'DZD';
+        }
+
+        const payment = new Payment({ ...req.body, currency: finalCurrency });
         await payment.save();
         res.status(201).json(payment);
     } catch (error) {

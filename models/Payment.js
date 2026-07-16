@@ -16,6 +16,12 @@ const paymentSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
+    currency: {
+        type: String,
+        enum: ['DZD', 'USD'],
+        required: true,
+        default: 'DZD'
+    },
     status: {
         type: String,
         enum: ['Pending', 'Paid', 'Overdue'],

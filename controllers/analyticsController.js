@@ -61,17 +61,29 @@ export const getOverview = async (req, res) => {
             ClassSession.countDocuments({ status: { $in: ['Upcoming', 'Active'] } }),
             Payment.aggregate([
                 { $match: { status: 'Paid' } },
-                { $group: { _id: null, total: { $sum: '$amount' } } }
+                { $group: { _id: '$currency', total: { $sum: '$amount' } } }
             ]),
             Payment.countDocuments({ status: 'Pending' })
         ]);
+
+        const totalRevenue = revenueAgg.reduce((sum, item) => {
+            const amountInDZD = item._id === 'USD' ? item.total * 135 : item.total;
+            return sum + amountInDZD;
+        }, 0);
+
+        const revenueBreakdown = { DZD: 0, USD: 0 };
+        revenueAgg.forEach(item => {
+            const curr = item._id || 'DZD';
+            revenueBreakdown[curr] = item.total;
+        });
 
         res.status(200).json({
             totalStudents,
             totalTeachers,
             activeCourses,
             activeSessions,
-            totalRevenue: revenueAgg.length > 0 ? revenueAgg[0].total : 0,
+            totalRevenue,
+            revenueBreakdown,
             pendingPayments
         });
     } catch (error) {
@@ -95,13 +107,24 @@ export const getRevenueTrends = async (req, res) => {
             },
             {
                 $group: {
-                    _id: buildDateGroup(groupBy),
+                    _id: {
+                        period: buildDateGroup(groupBy),
+                        currency: { $ifNull: ['$currency', 'DZD'] }
+                    },
                     totalRevenue: { $sum: '$amount' },
                     count: { $sum: 1 }
                 }
             },
-            { $sort: { _id: 1 } },
-            { $project: { _id: 0, period: '$_id', totalRevenue: 1, count: 1 } }
+            { $sort: { '_id.period': 1, '_id.currency': 1 } },
+            {
+                $project: {
+                    _id: 0,
+                    period: '$_id.period',
+                    currency: '$_id.currency',
+                    totalRevenue: 1,
+                    count: 1
+                }
+            }
         ];
 
         const trends = await Payment.aggregate(pipeline);
@@ -243,8 +266,19 @@ export const getCourseStats = async (req, res) => {
             // Revenue
             const revenueAgg = await Payment.aggregate([
                 { $match: { session: { $in: sessionIds }, status: 'Paid' } },
-                { $group: { _id: null, total: { $sum: '$amount' } } }
+                { $group: { _id: '$currency', total: { $sum: '$amount' } } }
             ]);
+
+            const totalRevenueCombined = revenueAgg.reduce((sum, item) => {
+                const amountInDZD = item._id === 'USD' ? item.total * 135 : item.total;
+                return sum + amountInDZD;
+            }, 0);
+
+            const revenueBreakdown = { DZD: 0, USD: 0 };
+            revenueAgg.forEach(item => {
+                const curr = item._id || 'DZD';
+                revenueBreakdown[curr] = item.total;
+            });
 
             // Attendance rate
             const attendanceAgg = await Attendance.aggregate([
@@ -275,7 +309,8 @@ export const getCourseStats = async (req, res) => {
                 },
                 activeSessions: sessions.length,
                 activeEnrollments: enrollmentCount,
-                totalRevenue: revenueAgg.length > 0 ? revenueAgg[0].total : 0,
+                totalRevenue: totalRevenueCombined,
+                revenueBreakdown,
                 attendanceRate: totalRecords > 0
                     ? Math.round((presentRecords / totalRecords) * 10000) / 100
                     : null
@@ -306,16 +341,28 @@ export const exportCSV = async (req, res) => {
                 { $addFields: { _dateField: '$paymentDate' } },
                 {
                     $group: {
-                        _id: buildDateGroup(groupBy),
+                        _id: {
+                            period: buildDateGroup(groupBy),
+                            currency: { $ifNull: ['$currency', 'DZD'] }
+                        },
                         totalRevenue: { $sum: '$amount' },
                         count: { $sum: 1 }
                     }
                 },
-                { $sort: { _id: 1 } }
+                { $sort: { '_id.period': 1, '_id.currency': 1 } },
+                {
+                    $project: {
+                        _id: 0,
+                        period: '$_id.period',
+                        currency: '$_id.currency',
+                        totalRevenue: 1,
+                        count: 1
+                    }
+                }
             ]);
 
-            headers = 'Period,Total Revenue,Payments Count';
-            rows = data.map(d => `${d._id},${d.totalRevenue},${d.count}`);
+            headers = 'Period,Currency,Total Revenue,Payments Count';
+            rows = data.map(d => `${d.period},${d.currency},${d.totalRevenue},${d.count}`);
         } else if (type === 'enrollments') {
             const dateRange = buildDateRange(startDate, endDate, 'enrollmentDate');
             const data = await Enrollment.aggregate([

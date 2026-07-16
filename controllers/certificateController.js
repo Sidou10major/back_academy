@@ -87,7 +87,7 @@ export const getCertificateById = async (req, res) => {
     try {
         const certificate = await Certificate.findById(req.params.id)
             .populate('student', 'firstName lastName email')
-            .populate('course', 'title language level price format')
+            .populate('course', 'title language level price priceDZD priceUSD format')
             .populate({
                 path: 'enrollment',
                 populate: { path: 'session', populate: { path: 'teacher', select: 'firstName lastName' } }

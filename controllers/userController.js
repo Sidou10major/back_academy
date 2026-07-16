@@ -39,6 +39,8 @@ export const loginUser = async (req, res) => {
                 email: user.email,
                 role: user.role,
                 phone: user.phone,
+                residence: user.residence,
+                currency: user.currency,
                 token: generateToken(user)
             });
         } else {
@@ -98,6 +100,7 @@ export const updateUser = async (req, res) => {
         user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
         user.hourlyRate = req.body.hourlyRate !== undefined ? req.body.hourlyRate : user.hourlyRate;
         user.isActive = req.body.isActive !== undefined ? req.body.isActive : user.isActive;
+        user.residence = req.body.residence !== undefined ? req.body.residence : user.residence;
 
         if (password) {
             user.password = password;

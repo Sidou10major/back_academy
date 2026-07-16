@@ -21,8 +21,20 @@ const courseSchema = new mongoose.Schema({
         required: true
     },
     description: { type: String, default: "" },
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, min: 0 },
+    priceDZD: { type: Number, required: true, min: 0 },
+    priceUSD: { type: Number, required: true, min: 0 },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
+
+courseSchema.pre('validate', function() {
+    if (this.priceDZD === undefined && this.price !== undefined) {
+        this.priceDZD = this.price;
+    }
+    if (this.priceUSD === undefined && this.price !== undefined) {
+        this.priceUSD = Math.round(this.price / 135);
+    }
+});
+
 
 export default mongoose.model('Course', courseSchema);
