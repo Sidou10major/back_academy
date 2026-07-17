@@ -65,7 +65,13 @@ export const getMyLeaves = async (req, res) => {
 // @route   GET /api/teacher-portal/leaves
 export const getAllLeaves = async (req, res) => {
     try {
-        const leaves = await TeacherLeave.find()
+        const { status } = req.query;
+        let query = {};
+        if (status) {
+            query.status = status;
+        }
+
+        const leaves = await TeacherLeave.find(query)
             .populate('teacher', 'firstName lastName email')
             .sort({ createdAt: -1 });
         res.status(200).json(leaves);

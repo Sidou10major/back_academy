@@ -129,3 +129,43 @@ export const deleteUser = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// @desc    Unblock a user account
+// @route   PUT /api/users/:id/unblock
+export const unblockUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        user.isActive = true;
+        await user.save();
+
+        const updatedUser = user.toObject();
+        delete updatedUser.password;
+
+        res.status(200).json({ message: 'User account unblocked successfully', user: updatedUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// @desc    Block a user account
+// @route   PUT /api/users/:id/block
+export const blockUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        user.isActive = false;
+        await user.save();
+
+        const updatedUser = user.toObject();
+        delete updatedUser.password;
+
+        res.status(200).json({ message: 'User account blocked successfully', user: updatedUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

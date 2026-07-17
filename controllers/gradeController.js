@@ -172,3 +172,30 @@ export const deleteGrade = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// @desc    Get all grades (with optional filters)
+// @route   GET /api/grades
+export const getAllGrades = async (req, res) => {
+    try {
+        const { student, session, teacher, type } = req.query;
+        let query = {};
+
+        if (student) query.student = student;
+        if (session) query.session = session;
+        if (teacher) query.teacher = teacher;
+        if (type) query.type = type;
+
+        const grades = await Grade.find(query)
+            .populate('student', 'firstName lastName email')
+            .populate('teacher', 'firstName lastName')
+            .populate({
+                path: 'session',
+                populate: { path: 'course', select: 'title language level' }
+            })
+            .sort({ date: -1 });
+
+        res.status(200).json(grades);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

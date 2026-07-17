@@ -1,6 +1,7 @@
 import express from 'express';
 import {
     createGrade,
+    getAllGrades,
     getGradesBySession,
     getGradesByStudent,
     getStudentSessionGrades,
@@ -12,7 +13,8 @@ import {
 const router = express.Router();
 
 router.route('/')
-    .post(createGrade);
+    .post(createGrade)
+    .get(getAllGrades);
 
 router.get('/session/:sessionId', getGradesBySession);
 router.get('/student/:studentId', getGradesByStudent);
